@@ -1,6 +1,8 @@
 import React from 'react'
 import Sidebar from '../../components/StickyComponent/Side Bar/Sidebar'
 import profilepic from "../../components/images/profile.jpg";
+import { Link } from 'react-router-dom';
+
 
 const CourseDetails = () => {
     return (
@@ -10,6 +12,9 @@ const CourseDetails = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 ml-4 mr-4">
                     <div className="space-y-6">
                         <h1 className="text-4xl font-bold">Introduction to Web Development</h1>
+                        <button type="button" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200  dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                            <a href="">Create Meeting with instructor </a>
+                        </button>
                         <div className="space-y-4">
                             <p className="text-gray-400">
                                 Learn the fundamentals of web development, including HTML, CSS, and JavaScript. This course is designed
@@ -34,9 +39,30 @@ const CourseDetails = () => {
                                 </div>
                             </div>
                         </div>
+                        <div className='py-2'>
+                        <Link to="/CoursePage">
                         <button type="button" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200  dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                            <a href="">Download Course Matrials</a>
+                            <a href="">Lecture 1</a>
                         </button>
+                        </Link>
+                        <Link to="/CoursePage">
+                        <button type="button" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200  dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                            <a href="">Lecture 2</a>
+                        </button>
+                        </Link>
+                        <Link to="/CoursePage">
+                        <button type="button" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200  dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                            <a href="">Lecture 3</a>
+                        </button>
+                        </Link>
+                        <Link to="/CoursePage">
+                        <button type="button" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200  dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                            <a href="">Lecture 4</a>
+                        </button>
+                        </Link>
+
+                      
+                        </div>
                     </div>
                     <div className="space-y-6 px-8">
                         <div className="aspect-video rounded-lg overflow-hidden">

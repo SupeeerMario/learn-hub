@@ -19,6 +19,9 @@ import NewCommunity from './pages/Communities/NewCommunity';
 import CourseDetails from './pages/Courses/CourseDetails';
 import Todos  from './pages/ToDoList/Todo';
 import ContactUs from './pages/ContactUS/ContactUs';
+import CoursePage from './pages/Courses/CoursePage';
+import InstructorReg from './pages/register/InstructorReg';
+
 
 
 function App() {
@@ -50,7 +53,7 @@ function App() {
         {/* ===========Login & Register Routes================= */}
         <Route exact path="/login" element={<Login />} />
         <Route exact path="/register" element={<Register />} />
-
+        <Route exact path="/InstructorReg" element={<InstructorReg />} />
         {/* ===========Chat Routes================= */}
         <Route exact path="/Inbox" element={<Chat />} />
 
@@ -61,6 +64,7 @@ function App() {
         {/* ===========Courses Routes================= */}
         <Route exact path="/Courses" element={<Courses />} />
         <Route exact path="/CourseDetails" element={<CourseDetails />} />
+        <Route exact path="/CoursePage" element={<CoursePage />} />
 
         <Route exact path="/Packages" element={<Package />} />
         <Route exact path="/Dashboard" element={<Dashboard />} />

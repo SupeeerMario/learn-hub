@@ -113,7 +113,13 @@ function Register() {
             <button className="w-full bg-blue-600 rounded-md  p-4 text-center text-white flex items-center justify-center" onClick={handleSubmit}>
               Create Account
             </button>
+        
           </div>
+          <Link to="/InstructorReg">
+          <button className="w-full bg-blue-900 rounded-md  p-4 text-center text-white flex items-center justify-center" onClick={handleSubmit}>
+              Create Account as Instructor
+            </button>
+            </Link>
 
 
          

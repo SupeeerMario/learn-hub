@@ -150,9 +150,9 @@ class CommunityRepository {
         throw new Error('Community not found')
       }
 
-      /*       if (community.ownerID !== userId) {
+      if (community.ownerID !== userId) {
         throw new Error('You are not authorized to upload.')
-      } */
+      }
 
       const fileLink = `https://storage.googleapis.com/${file.bucket}/${file.originalname}`
       const newFile = {

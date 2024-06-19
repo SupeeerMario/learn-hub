@@ -261,7 +261,7 @@ const NewCommunity = ({ communityData: initialCommunityData = [] }) => {
                                     <h3 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
                                         <a href="#">{community.name}</a>
                                     </h3>
-                                    <span className="text-gray-500 dark:text-gray-400">{community.about}</span>
+                                    <span className="text-gray-500 dark:text-gray-400">{}</span>
                                     <p className="mt-3 mb-4 font-light text-gray-500 dark:text-gray-400">{community.about}</p>
                                     <button
                                         onClick={() => communityPageRoute(community._id)}
@@ -325,7 +325,7 @@ const NewCommunity = ({ communityData: initialCommunityData = [] }) => {
                                     <h3 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
                                         <a href="#">{community.name}</a>
                                     </h3>
-                                    <span className="text-gray-500 dark:text-gray-400">{community.about}</span>
+                                    <span className="text-gray-500 dark:text-gray-400">{}</span>
                                     <p className="mt-3 mb-4 font-light text-gray-500 dark:text-gray-400">{community.about}</p>
                                     <button
                                         onClick={() => joinCommunity(community._id)}

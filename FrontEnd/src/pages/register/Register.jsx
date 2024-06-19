@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import Text from "../login/Text.svg";
 import logo2 from "../../components/images/LoginNew.png";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Register() {
+  const navigate = useNavigate();
+
   const [data, setData] = useState({
     username: "",
     email: "",
@@ -57,6 +60,8 @@ function Register() {
       }
 
       alert("Registration successful!");
+      navigate("/Login");
+
     } catch (error) {
       console.error("Error registering user:", error);
     }

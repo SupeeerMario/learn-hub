@@ -38,7 +38,6 @@ async function checkIsOwner (req, res, next) {
     const userId = req.mongouserId
     const username = req.username
 
-    console.log(`useeeeeeeeeerid ${userId}`)
     console.log(`Checking ownership for user ${userId} on community ${communityId}`)
 
     const community = await Community.findById(communityId).lean()

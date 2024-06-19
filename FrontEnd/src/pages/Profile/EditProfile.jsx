@@ -71,7 +71,7 @@ const EditProfile = () => {
 
       // Navigate to the profile page after a short delay
       setTimeout(() => {
-        navigate('/profile');
+        navigate('/Login');
       }, 1000);
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error);
@@ -80,9 +80,9 @@ const EditProfile = () => {
   };
 
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <Sidebar />
-      <div className='ml-64 bg-gray-900 mt-16 px-8'>
+      <div className="ml-64 bg-gray-900 mt-16 px-8 flex-1">
         <section>
           <div className="max-w-2xl px-4 py-8 mx-auto lg:py-16">
             <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">Update Profile</h2>
@@ -146,6 +146,7 @@ const EditProfile = () => {
       </div>
     </div>
   );
+  
 };
 
 export default EditProfile;

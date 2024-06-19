@@ -297,43 +297,42 @@ const CommunityPage = () => {
             case 'Posts':
                 return (
                     // Content Div Posts Urgent and ETC
-                    <div className="grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-gray-200 pt-10 dark:border-gray-700 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-                    {posts.map((post) => (
-                        <article key={post._id} className="flex flex-col items-start justify-between">
-                            <div className="flex items-center gap-x-4 text-xs">
-                                <time dateTime={post.createdAt} className="text-gray-500 dark:text-gray-400">
-                                    {new Date(post.createdAt).toLocaleDateString()}
-                                </time>
-                                <a
-                                    href={post.category ? `/${post.category.toLowerCase()}` : '#'} // Ensure category exists before calling toLowerCase
-                                    className="relative z-10 rounded-full bg-gray-50 px-3 py-1.5 font-medium text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                                >
-                                    {post.category || 'Uncategorized'}
-                                </a>
-                            </div>
-                            <div className="group relative mt-3">
-                                <h3 className="text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600 dark:text-gray-100 dark:group-hover:text-gray-300">
-                                    <a href={`/posts/${post._id}`} className="hover:underline">
-                                        {post.title}
-                                    </a>
-                                </h3>
-                                <p className="mt-2 line-clamp-3 text-sm leading-6 text-gray-600 dark:text-gray-400">{post.description}</p>
-                            </div>
-                            <div className="relative mt-4 flex items-center gap-x-4">
-                                <img
-                                    src={post.imageUrl || '/path/to/default/image'} // Replace with your default image URL
-                                    alt=""
-                                    className="h-10 w-10 rounded-full bg-gray-50 dark:bg-gray-800"
-                                />
-                                <div className="text-sm leading-6">
-                                    <p className="font-semibold text-gray-900 dark:text-gray-100">
-                                        {post.username}
-                                    </p>
-                                </div>
-                            </div>
-                        </article>
-                    ))}
-                </div>
+<div className="grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-gray-200 pt-10 dark:border-gray-700 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+  {posts.map((post) => (
+    <article key={post._id} className="flex flex-col items-start justify-between">
+      <div className="flex items-center gap-x-4 text-xs">
+        <time dateTime={post.createdAt} className="text-gray-500 dark:text-gray-400">
+          {new Date(post.createdAt).toLocaleDateString()}
+        </time>
+        <a
+          href={post.category ? `/${post.category.toLowerCase()}` : '#'}
+          className="relative z-10 rounded-full bg-gray-50 px-3 py-1.5 font-medium text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+        >
+          {post.category || 'Uncategorized'}
+        </a>
+      </div>
+      <div className="group relative mt-3">
+        <h3 className="text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600 dark:text-gray-100 dark:group-hover:text-gray-300">
+          <a href={`/posts/${post._id}`} className="hover:underline">
+            {post.title}
+          </a>
+        </h3>
+        <p className="mt-2 line-clamp-3 text-sm leading-6 text-gray-600 dark:text-gray-400">{post.description}</p>
+      </div>
+      <div className="relative mt-4 flex items-center gap-x-4">
+        <img
+          src={post.imageUrl || '/path/to/default/image'}
+          alt=""
+          className="h-10 w-10 rounded-full bg-gray-50 dark:bg-gray-800"
+        />
+        <div className="text-sm leading-6">
+          <p className="font-semibold text-gray-900 dark:text-gray-100">{post.username}</p>
+        </div>
+      </div>
+    </article>
+  ))}
+</div>
+
                 );
             case 'Files':
                 return <div className="text-white border-t border-gray-200">

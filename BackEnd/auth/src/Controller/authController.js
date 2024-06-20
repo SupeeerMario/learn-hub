@@ -106,14 +106,15 @@ class AuthController {
         mongoUserName: mongoUser.username,
         email: mongoUser.email,
         userProfilePic: mongoUser.profilepic,
-        userRole: mongoUser.role
+        role: mongoUser.role
       }
       await admin.auth().setCustomUserClaims(firebaseUid, customClaims)
 
       // Get Firebase token
       const token = await userCredential.user.getIdToken(true)
 
-      res.cookie('token', token, { httpOnly: true })
+      res.cookie('token', token, { httpOnly: false, sameSite: 'Strict', secure: true, path: '/' })
+      res.cookie('userRole', mongoUser.role, { httpOnly: false, sameSite: 'Strict', secure: true, path: '/' })
       res.json({ message: 'Authentication successful', token })
     } catch (error) {
       console.error('Login error:', error)
@@ -310,6 +311,16 @@ class AuthController {
       res.json(result)
     } catch (err) {
       res.status(400).json({ message: err.message })
+    }
+  }
+
+  async getUserRole (req, res) {
+    try {
+      const userRole = req.role
+      res.status(200).json({ role: userRole })
+    } catch (error) {
+      console.error('Error getting user role:', error)
+      res.status(500).json({ error: 'Failed to get user role.' })
     }
   }
 }

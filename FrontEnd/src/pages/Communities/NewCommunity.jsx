@@ -74,7 +74,7 @@ const NewCommunity = ({ communityData: initialCommunityData = [] }) => {
                 method: 'GET',
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}` // Ensure token is correctly formatted
+                    "Authorization": `Bearer ${token}` 
                 },
                 credentials: 'include'
             });

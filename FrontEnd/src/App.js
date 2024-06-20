@@ -14,6 +14,8 @@ import EditProfile from './pages/Profile/EditProfile';
 import Chat from './pages/Chat/Chat';
 import AI from './pages/AskAi/AI';
 import Courses from './pages/Courses/Courses';
+import MyCourses from './pages/Courses/MyCourses';
+import CreateCourse from './pages/Courses/CreateCourse';
 import CommunityPage from './pages/Communities/CommunityPage';
 import NewCommunity from './pages/Communities/NewCommunity';
 import CourseDetails from './pages/Courses/CourseDetails';
@@ -63,8 +65,10 @@ function App() {
 
         {/* ===========Courses Routes================= */}
         <Route exact path="/Courses" element={<Courses />} />
-        <Route exact path="/CourseDetails" element={<CourseDetails />} />
+        <Route exact path="/CourseDetails/:courseId" element={<CourseDetails />} />
         <Route exact path="/CoursePage" element={<CoursePage />} />
+        <Route exact path="/MyCourses" element={<MyCourses />} />
+        <Route exact path="/CreateCourse" element={<CreateCourse />} />
 
         <Route exact path="/Packages" element={<Package />} />
         <Route exact path="/Dashboard" element={<Dashboard />} />

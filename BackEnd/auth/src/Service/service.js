@@ -276,5 +276,17 @@ class AuthService {
 
     return { message: 'Login successful', token }
   }
+
+  async getUserRoleByEmail (email) {
+    try {
+      const user = await this.authRepository.findUserByEmail(email)
+      if (!user) {
+        throw new Error('User not found')
+      }
+      return user.role
+    } catch (error) {
+      throw new Error(`Failed to get user role: ${error.message}`)
+    }
+  }
 }
 module.exports = AuthService

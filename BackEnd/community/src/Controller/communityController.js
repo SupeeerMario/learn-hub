@@ -1,5 +1,5 @@
 const CommunityService = require('../Service/communityService')
-const { uploadFile } = require('../Config/firebaseeconfig')
+const { bucket } = require('../Config/firebaseeconfig')
 const admin = require('firebase-admin')
 
 class CommunityController {
@@ -137,9 +137,39 @@ class CommunityController {
 
       const fileDetails = { title, description, category }
 
-      const result = await this.communityService.uploadFile(communityId, userId, file, fileDetails)
+      // Process the file and upload to Firebase Storage
+      const blob = bucket.file(Date.now() + '_' + file.originalname)
+      const blobStream = blob.createWriteStream({
+        metadata: {
+          contentType: file.mimetype
+        }
+      })
 
-      res.json(result)
+      blobStream.on('error', (error) => {
+        console.error('Blob stream error:', error)
+        res.status(500).json({ error: 'Blob stream error' })
+      })
+
+      blobStream.on('finish', async () => {
+        try {
+          // Make the file public
+          await blob.makePublic()
+          const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+          fileDetails.fileUrl = publicUrl // Add the public URL to the file details
+          console.log('File uploaded to:', publicUrl)
+
+          // Call the service to save the file details to the community
+          const result = await this.communityService.uploadFile(communityId, userId, fileDetails)
+
+          res.json(result)
+        } catch (error) {
+          console.error('Error making file public:', error)
+          res.status(500).json({ error: 'Error making file public' })
+        }
+      })
+
+      // Write the file buffer to the blob stream
+      blobStream.end(file.buffer)
     } catch (error) {
       console.error('Error in uploadFile controller:', error)
       res.status(500).json({ error: 'Internal Server Error' })

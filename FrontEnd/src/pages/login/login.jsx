@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { GoogleLogin } from '@react-oauth/google';
 import "./loginStyle.css";
 import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
 const Login = () => {
   const [data, setData] = useState({
@@ -20,17 +21,15 @@ const Login = () => {
     setData(newData);
   };
   const navigate = useNavigate();
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     console.log("Data before sending:", data);
-
-
+  
     if (!data.email.includes("@") || !data.email.includes(".")) {
       alert("Please enter a valid email address.");
       return;
     }
-
+  
     if (!data.email || !data.password) {
       alert("Please enter both email and password");
       return;
@@ -40,20 +39,18 @@ const Login = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
+        credentials: 'include' // Ensure cookies are included
       });
-
+  
       if (!response.ok) {
         throw new Error("Login failed: " + (await response.text()));
       }
-      localStorage.setItem('currentUser', JSON.stringify(response.data));
-
-
+  
       const loginData = await response.json(); 
-      
-      if(loginData){
+  
+      if (loginData) {
         const decodedToken = jwt_decode(loginData.token);
-
-        // Ensure complete user data including _id is stored
+  
         const currentUser = {
           _id: decodedToken.mongoUserID,
           username: decodedToken.mongoUserName,
@@ -61,21 +58,19 @@ const Login = () => {
           profilepic: decodedToken.userProfilePic,
         };
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-        console.log('currentUser set in local storage:', loginData.user);
-        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-
-      if (loginData) {
-        document.cookie = `token=${loginData.token}; SameSite=Strict; Secure`;
+  
+        console.log('currentUser set in local storage:', currentUser);
+        
+        document.cookie = `token=${loginData.token}; SameSite=Strict; Secure; path=/;`;
+  
         console.log("Login successful:", loginData);
         navigate("/home");
       }
-
-    } }
-    catch (error) {
+  
+    } catch (error) {
       console.error("Login error:", error);
     }
-  }
+  };
 
   //flex-col lg:flex-row items-center
   return (

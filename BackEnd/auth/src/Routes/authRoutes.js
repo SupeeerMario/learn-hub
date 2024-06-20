@@ -26,5 +26,6 @@ router.get('/profile', authMiddlewares.isAuthenticated, authController.getProfil
 router.get('/all', authController.getAll.bind(authController))
 router.post('/addFriend', authMiddlewares.isAuthenticated, authController.addFriend.bind(authController))
 router.get('/getFriendList', authMiddlewares.isAuthenticated, authController.getFriendList.bind(authController))
+router.post('/getUserRole', authMiddlewares.isAuthenticated, authController.getUserRole)
 
 module.exports = router

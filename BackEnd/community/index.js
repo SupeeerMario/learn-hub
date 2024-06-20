@@ -4,6 +4,7 @@ const express = require('express')
 const connectToDB = require('./connectToDB')
 const cookieParser = require('cookie-parser')
 const communityRoutes = require('./src/Routes/communityRoutes')
+const coursesRoutes = require('./src/Routes/courseRoutes')
 const cors = require('cors')
 
 const app = express()
@@ -29,6 +30,7 @@ app.use((req, res, next) => {
 
 // Use community routes
 app.use('/community', communityRoutes)
+app.use('/course', coursesRoutes)
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`Community service is running on port ${port}!`)

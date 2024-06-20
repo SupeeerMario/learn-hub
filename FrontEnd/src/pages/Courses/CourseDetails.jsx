@@ -1,25 +1,99 @@
-import React from 'react'
-import Sidebar from '../../components/StickyComponent/Side Bar/Sidebar'
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import Sidebar from '../../components/StickyComponent/Side Bar/Sidebar';
 import profilepic from "../../components/images/profile.jpg";
-import { Link } from 'react-router-dom';
-
 
 const CourseDetails = () => {
+    const { courseId } = useParams();
+    const [courseDetails, setCourseDetails] = useState(null);
+    const [ownerDetails, setOwnerDetails] = useState(null);
+    const [status, setStatus] = useState('Ongoing'); // Default to "Ongoing"
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const [showCompletionBar, setShowCompletionBar] = useState(false);
+
+    useEffect(() => {
+        const fetchCourseDetails = async () => {
+            try {
+                const response = await fetch(`http://localhost:8003/course/get/${courseId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                setCourseDetails(data.course);
+                setStatus(data.course.completed ? 'Completed' : 'Ongoing'); // Set initial status based on course completion status
+                setShowCompletionBar(data.course.completed); // Set showCompletionBar based on fetched completed status
+
+                const responseOwner = await fetch(`http://localhost:8002/auth/profile`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include'
+                });
+                const ownerData = await responseOwner.json();
+                setOwnerDetails(ownerData);
+            } catch (error) {
+                console.error('Error fetching course details:', error);
+            }
+        };
+
+        fetchCourseDetails();
+    }, [courseId]);
+
+    const handleStatusChange = async () => {
+        try {
+            const response = await fetch(`http://localhost:8003/course/complete/${courseId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ completed: status === 'Completed' })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update course status');
+            }
+
+            const updatedCourse = await response.json();
+            setCourseDetails(updatedCourse.course);
+            setShowCompletionBar(updatedCourse.course.completed); // Show completion bar if the course is marked as completed
+            setIsPopupOpen(false); // Close popup after submit
+        } catch (error) {
+            console.error('Error updating course status:', error);
+        }
+    };
+
+    if (!courseDetails || !ownerDetails) {
+        return <div>Loading...</div>;
+    }
+
     return (
         <div>
-            <Sidebar> </Sidebar>
-            <div className=" bg-gray-800 min-h-screen ml-64 pt-24 text-white">
+            <Sidebar />
+            <div className="bg-gray-800 min-h-screen ml-64 pt-24 text-white">
+                {showCompletionBar && (
+                    <div className="bg-green-600 text-white text-center mb-2">
+                    This course is marked as completed
+                    </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 ml-4 mr-4">
                     <div className="space-y-6">
-                        <h1 className="text-4xl font-bold">Introduction to Web Development</h1>
-                        <button type="button" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200  dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                            <a href="">Create Meeting with instructor </a>
-                        </button>
+                        <div className="flex justify-between items-center">
+                            <h1 className="text-4xl font-bold">{courseDetails.name}</h1>
+                            <button
+                                type="button"
+                                className="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                                onClick={() => setIsPopupOpen(true)}
+                            >
+                                Course Status
+                            </button>
+                        </div>
                         <div className="space-y-4">
-                            <p className="text-gray-400">
-                                Learn the fundamentals of web development, including HTML, CSS, and JavaScript. This course is designed
-                                for beginners and covers the essential skills needed to build modern web applications.
-                            </p>
+                            <p className="text-gray-400">{courseDetails.about}</p>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <h3 className="text-lg font-medium">Duration</h3>
@@ -27,41 +101,28 @@ const CourseDetails = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-medium">Level</h3>
-                                    <p className="text-gray-400">Beginner</p>
+                                    <p className="text-gray-400">{courseDetails.level}</p>
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-medium">Instructor</h3>
-                                    <p className="text-gray-400">John Doe</p>
+                                    <p className="text-gray-400">{ownerDetails.username}</p>
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-medium">Language</h3>
-                                    <p className="text-gray-400">English</p>
+                                    <p className="text-gray-400">{courseDetails.language}</p>
                                 </div>
                             </div>
                         </div>
-                        <div className='py-2'>
-                        <Link to="/CoursePage">
-                        <button type="button" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200  dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                            <a href="">Lecture 1</a>
-                        </button>
-                        </Link>
-                        <Link to="/CoursePage">
-                        <button type="button" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200  dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                            <a href="">Lecture 2</a>
-                        </button>
-                        </Link>
-                        <Link to="/CoursePage">
-                        <button type="button" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200  dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                            <a href="">Lecture 3</a>
-                        </button>
-                        </Link>
-                        <Link to="/CoursePage">
-                        <button type="button" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200  dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                            <a href="">Lecture 4</a>
-                        </button>
-                        </Link>
-
-                      
+                        <div className="py-2">
+                            {courseDetails.materials.map((material, index) => (
+                                <a
+                                    key={index}
+                                    href={material.file}
+                                    className="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                                >
+                                    Lecture {index + 1}
+                                </a>
+                            ))}
                         </div>
                     </div>
                     <div className="space-y-6 px-8">
@@ -73,89 +134,108 @@ const CourseDetails = () => {
                                 title="YouTube video player"
                                 frameBorder="0"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen>
-                            </iframe>
+                                allowFullScreen
+                            />
                         </div>
-                    
-                    <div className="space-y-4">
-                        <h2 className="text-2xl font-bold">Video Details</h2>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <h3 className="text-lg font-medium">Duration</h3>
-                                <p className="text-gray-400">45 minutes</p>
+                        <div className="space-y-4">
+                            <h2 className="text-2xl font-bold">Video Details</h2>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <h3 className="text-lg font-medium">Duration</h3>
+                                    <p className="text-gray-400">45 minutes</p>
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-medium">Publisher</h3>
+                                    <p className="text-gray-400">Acme Inc.</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="text-lg font-medium">Publisher</h3>
-                                <p className="text-gray-400">Acme Inc.</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="mt-12 ml-4 mr-4 p-4">
+                    <h2 className="text-2xl font-bold mb-4">Student Feedback</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
+                            <div className="p-4">
+                                <div className="flex items-center space-x-4">
+                                    <img src={profilepic} alt="Avatar" width={48} height={48} className="rounded-full" />
+                                    <div>
+                                        <h3 className="text-lg font-medium">Jane Doe</h3>
+                                        <p className="text-gray-400">5 out of 5 stars</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-4 border-t border-gray-700">
+                                <p className="text-gray-400">
+                                    This course was amazing! The instructor was very knowledgeable and the content was well-structured. I highly recommend it to anyone interested in web development.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
+                            <div className="p-4">
+                                <div className="flex items-center space-x-4">
+                                    <img src={profilepic} alt="Avatar" width={48} height={48} className="rounded-full" />
+                                    <div>
+                                        <h3 className="text-lg font-medium">Ahmed Magdy</h3>
+                                        <p className="text-gray-400">4 out of 5 stars</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-4 border-t border-gray-700">
+                                <p className="text-gray-400">
+                                    The course was very informative and the instructor did a great job explaining the concepts. I learned a lot and feel more confident in my web development skills.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
+                            <div className="p-4">
+                                <div className="flex items-center space-x-4">
+                                    <img src={profilepic} alt="Avatar" width={48} height={48} className="rounded-full" />
+                                    <div>
+                                        <h3 className="text-lg font-medium">Khaled Shabaan</h3>
+                                        <p className="text-gray-400">4.5 out of 5 stars</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-4 border-t border-gray-700">
+                                <p className="text-gray-400">
+                                    I really enjoyed this course. The content was well-organized and the instructor was very engaging. I would definitely recommend it to anyone looking to learn web development.
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div className="mt-12 ml-4 mr-4 p-4">
-                <h2 className="text-2xl font-bold mb-4">Student Feedback</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
-                        <div className="p-4">
-                            <div className="flex items-center space-x-4">
-                                <img src={profilepic} alt="Avatar" width={48} height={48} className="rounded-full" />
-                                <div>
-                                    <h3 className="text-lg font-medium">Jane Doe</h3>
-                                    <p className="text-gray-400">5 out of 5 stars</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="p-4 border-t border-gray-700">
-                            <p className="text-gray-400">
-                                This course was amazing! The instructor was very knowledgeable and the content was well-structured. I
-                                highly recommend it to anyone interested in web development.
-                            </p>
-                        </div>
-                    </div>
-                    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
-                        <div className="p-4">
-                            <div className="flex items-center space-x-4">
-                                <img src={profilepic} alt="Avatar" width={48} height={48} className="rounded-full" />
-                                <div>
-                                    <h3 className="text-lg font-medium">Ahmed Magdy</h3>
-                                    <p className="text-gray-400">4 out of 5 stars</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="p-4 border-t border-gray-700">
-                            <p className="text-gray-400">
-                                The course was very informative and the instructor did a great job explaining the concepts. I learned a
-                                lot and feel more confident in my web development skills.
-                            </p>
-                        </div>
-                    </div>
-                    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
-                        <div className="p-4">
-                            <div className="flex items-center space-x-4">
-                                <img src={profilepic} alt="Avatar" width={48} height={48} className="rounded-full" />
-                                <div>
-                                    <h3 className="text-lg font-medium">Khaled Shabaan</h3>
-                                    <p className="text-gray-400">4.5 out of 5 stars</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="p-4 border-t border-gray-700">
-                            <p className="text-gray-400">
-                                I really enjoyed this course. The content was well-organized and the instructor was very engaging. I
-                                would definitely recommend it to anyone looking to learn web development.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div >
 
-    )
-}
+            {isPopupOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+                    <div className="bg-gray-800 p-6 rounded-lg">
+                        <h2 className="text-xl font-bold mb-4 text-white">Change Course Status</h2>
+                        <select
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value)}
+                            className="w-full p-2 mb-4 rounded bg-gray-700 text-white"
+                        >
+                            <option value="Ongoing">Ongoing</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                        <button
+                            onClick={handleStatusChange}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded mr-2"
+                        >
+                            Submit
+                        </button>
+                        <button
+                            onClick={() => setIsPopupOpen(false)}
+                            className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 export default CourseDetails;
-
-
-
-

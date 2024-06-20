@@ -146,27 +146,17 @@ class CommunityRepository {
     return community
   }
 
-  async uploadFile (communityId, userId, file, fileDetails) {
+  async uploadFile (communityId, userId, fileDetails) {
     try {
-      console.log('Repository - uploadFile:', { communityId, userId, file, fileDetails })
+      console.log('Repository - uploadFile:', { communityId, userId, fileDetails })
       const community = await Community.findById(communityId)
       if (!community) {
         console.error('Community not found:', communityId)
         throw new Error('Community not found')
       }
 
-      const filePath = `uploads/${Date.now()}_${file.originalname}`
-      const fileRef = bucket.file(filePath)
-
-      await fileRef.save(file.buffer, {
-        metadata: {
-          contentType: file.mimetype
-        }
-      })
-
-      const fileLink = `https://storage.googleapis.com/${bucket.name}/${filePath}`
       const newFile = {
-        link: fileLink,
+        link: fileDetails.fileUrl,
         title: fileDetails.title,
         description: fileDetails.description,
         category: fileDetails.category
@@ -176,7 +166,7 @@ class CommunityRepository {
 
       await community.save()
 
-      return { downloadURL: fileLink }
+      return { downloadURL: fileDetails.fileUrl }
     } catch (error) {
       console.error('Error in uploadFile repository:', error)
       throw new Error(`Failed to upload file: ${error.message}`)

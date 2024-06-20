@@ -7,6 +7,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const { userFromToken } = require('./tokenDecoder');
 const mongoose = require('mongoose');
+const { getZoomAccessToken, createZoomMeeting } = require('./zoom/script');
 require('dotenv').config();
 
 const app = express();
@@ -32,6 +33,41 @@ app.use(userFromToken);
 require('./ai/script')(app);
 require('./chat/script')({ io, app });
 require('./todolist/script')({ app });
+
+app.get('/callback', async (req, res) => {
+  const code = req.query.code;
+  console.log('OAuth callback received with code:', code);
+  try {
+    const accessToken = await getZoomAccessToken(code);
+    console.log('Received access token:', accessToken);
+    console.log('Setting Zoom access token in cookie');
+    res.cookie('zoomAccessToken', accessToken, { httpOnly: true });
+    res.redirect('/'); // Redirect to your frontend
+  } catch (error) {
+    console.error('Error during OAuth callback:', error.message);
+    res.status(500).send('Error during OAuth callback');
+  }
+});
+
+app.post('/create-meeting', async (req, res) => {
+  const accessToken = req.cookies.zoomAccessToken;
+  console.log('Cookies received in create-meeting request:', req.cookies);
+  if (!accessToken) {
+    console.log('Unauthorized request to create meeting');
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  console.log('Creating meeting with Zoom access token:', accessToken);
+  try {
+    const meetingData = await createZoomMeeting(accessToken);
+    console.log('Meeting created successfully:', meetingData);
+    res.json(meetingData);
+  } catch (error) {
+    console.error('Error creating meeting:', error.message);
+    res.status(500).json({ message: 'Error creating meeting. Please try again later.' });
+  }
+});
+
 
 mongoose.connect(process.env.DB, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {

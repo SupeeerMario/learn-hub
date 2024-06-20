@@ -9,9 +9,16 @@ const Sidebar = () => {
 
 
    const [isLoggedOut, setIsLoggedOut] = useState(false);
+   const [userRole, setUserRole] = useState('');
+
    const navigate  = useNavigate ();
    
    useEffect(() => {
+
+      const role = Cookies.get('userRole');
+      console.log("User role from cookie:", role);
+      setUserRole(role);
+
       if (isLoggedOut) {
          navigate('/login');
       }
@@ -38,6 +45,8 @@ const Sidebar = () => {
    
        console.log("Logged out successfully.");
        Cookies.remove('token'); 
+       Cookies.remove('userRole'); 
+
        setIsLoggedOut(true);
        navigate("/Login")
    
@@ -122,7 +131,24 @@ const Sidebar = () => {
                      </Link>
                   </li>
                   {/* ================Courses==================== */}
+
+                  {userRole === 'instructor' && (
+              <li>
+                <Link to={'/MyCourses'}>
+                  <a href="MyCourses" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <svg className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M8.5 3a3 3 0 1 1 6 0h3a1.5 1.5 0 0 1 0 3H8.5a1.5 1.5 0 0 1 0-3h3a3 3 0 0 1-6 0zM2 8.5a1.5 1.5 0 0 1 3 0v3a1.5 1.5 0 1 1-3 0v-3zM4.5 12a1.5 1.5 0 0 1 0 3h3a1.5 1.5 0 1 1 0 3h-3a1.5 1.5 0 0 1 0-3h3a1.5 1.5 0 1 1 0-3h-3zM8.5 15a3 3 0 1 1 6 0h3a1.5 1.5 0 1 1 0 3H8.5a1.5 1.5 0 1 1 0-3h3a3 3 0 0 1-6 0z" />
+                    </svg>
+                    <span className="flex-1 ms-3 whitespace-nowrap">My Courses</span>
+                  </a>
+                </Link>
+              </li>
+            )}
+                              {userRole !== 'instructor' && (
+
                   <li>
+                  <Link to={'/Courses'}>
+
                      <a href="Courses" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                         <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18">
                            <path d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z" />
@@ -130,7 +156,12 @@ const Sidebar = () => {
                         <span class="flex-1 ms-3 whitespace-nowrap">Courses</span>
                         <span class="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">Pro</span>
                      </a>
+                     </Link>
+
                   </li>
+                              )}
+
+                  
                   {/* ================Chat==================== */}
                   <li>
                      <Link to={'/Inbox'}>
@@ -179,6 +210,8 @@ const Sidebar = () => {
                      </Link>
                   </li>
                   {/* ======================Packages========================== */}
+                  {userRole !== 'instructor' && (
+
                   <li>
                      <Link to={'/Packages'}>
                      <a href="Packages" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
@@ -189,6 +222,8 @@ const Sidebar = () => {
                      </a>
                      </Link>
                   </li>
+                              )}
+
                    {/* ================Contact==================== */}
                    <li className=''>
                    <Link to={'/ContactUs'}>

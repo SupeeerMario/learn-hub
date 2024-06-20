@@ -143,9 +143,11 @@ class CommunityService {
 
   async uploadFile (communityId, userId, file, fileDetails) {
     try {
+      console.log('Service - uploadFile:', { communityId, userId, file, fileDetails })
       const result = await this.communityRepository.uploadFile(communityId, userId, file, fileDetails)
       return result
     } catch (error) {
+      console.error('Error in uploadFile service:', error)
       throw new Error(`Failed to upload file: ${error.message}`)
     }
   }

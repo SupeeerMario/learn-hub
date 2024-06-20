@@ -1,7 +1,6 @@
 const CommunityService = require('../Service/communityService')
 const { uploadFile } = require('../Config/firebaseeconfig')
 const admin = require('firebase-admin')
-const { User } = require('../../../auth/src/models/user')
 
 class CommunityController {
   constructor () {
@@ -130,8 +129,11 @@ class CommunityController {
       const { title, description, category } = req.body
 
       if (!file) {
+        console.error('No file uploaded')
         return res.status(400).json({ error: 'No file uploaded.' })
       }
+
+      console.log('File details:', { file, userId, communityId, title, description, category })
 
       const fileDetails = { title, description, category }
 
@@ -139,7 +141,7 @@ class CommunityController {
 
       res.json(result)
     } catch (error) {
-      console.error(error)
+      console.error('Error in uploadFile controller:', error)
       res.status(500).json({ error: 'Internal Server Error' })
     }
   }

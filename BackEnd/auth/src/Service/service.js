@@ -2,7 +2,11 @@ const bcrypt = require('bcrypt')
 const joi = require('joi')
 const AuthRepository = require('../Repository/authRepository')
 const AuthMiddlewares = require('../middlewares/authMiddlewares')
-
+const { firebaseApp } = require('../Config/firebaseeconfig')
+const { getAuth, createUserWithEmailAndPassword } = require('firebase/auth')
+const jwt = require('jsonwebtoken')
+/* const { sendMail } = require('../Config/nodemailer')
+ */
 class AuthService {
   constructor () {
     this.authRepository = new AuthRepository()
@@ -15,7 +19,13 @@ class AuthService {
       lastname: joi.string().label('Last Name'),
       email: joi.string().email().required().label('Email'),
       password: joi.string().required().label('Password'),
-      profilepic: joi.string().label('Profilepic')
+      profilepic: joi.string().label('Profilepic'),
+      role: joi.string().valid('student', 'instructor').required().label('User Role'),
+      cv: joi.string().when('role', {
+        is: 'instructor',
+        then: joi.required().label('CV'),
+        otherwise: joi.optional()
+      }).label('CV')
     })
 
     return schema.validate(data)
@@ -26,6 +36,12 @@ class AuthService {
       const { error } = this.validateUserData(userData)
       if (error) {
         throw new Error(error.details[0].message)
+      }
+
+      if (userData.role === 'instructor') {
+        userData.status = 'pending'
+      } else {
+        userData.status = 'approved'
       }
 
       const salt = await bcrypt.genSalt(Number(process.env.SALT))
@@ -55,10 +71,8 @@ class AuthService {
   async loginUser (email, password) {
     try {
       const user = await this.authRepository.findUserByEmail(email)
-
       if (!user) {
         console.log('Email:', email)
-
         throw new Error('Invalid Email')
       }
 
@@ -66,12 +80,11 @@ class AuthService {
       if (!validPassword) {
         console.log('Entered Password:', password)
         console.log('Hashed Password from DB:', user.password)
-        console.log('bcrypt.compare Result:', validPassword)
         throw new Error('Invalid Password')
       }
 
-      const token = AuthMiddlewares.tokenassign(user)
-      return { message: 'Login successful', success: true, token }
+      // Firebase token assignment is handled in the controller, no need to return token here
+      return { message: 'Login successful', success: true }
     } catch (error) {
       console.error(`Login failed: ${error.message}`)
       return { message: 'Login not successful', success: false }
@@ -146,6 +159,122 @@ class AuthService {
       throw new Error('Failed to update user')
     }
     return user
+  }
+
+  async approveInstructor (instructorId) {
+    const user = await this.authRepository.findUserById(instructorId)
+    if (!user) {
+      throw new Error('Instructor not found')
+    }
+
+    if (user.role !== 'instructor') {
+      throw new Error('User is not an instructor')
+    }
+
+    const updatedUser = await this.authRepository.updateUserStatus(instructorId, 'approved')
+    /*     const approvalSubject = 'Your Instructor Account Has Been Approved!'
+    const approvalText = `
+    Dear ${user.username},
+
+    We are pleased to inform you that your instructor account on LearnHub has been approved! You can now log in and start sharing your knowledge with our community.
+
+    Thank you for your patience during the review process.
+
+    Best regards,
+    The LearnHub Team
+    `
+
+    await sendMail(user.email, approvalSubject, approvalText) */
+    return updatedUser
+  }
+
+  async declineInstructor (instructorId) {
+    const user = await this.authRepository.findUserById(instructorId)
+    if (!user) {
+      throw new Error('Instructor not found')
+    }
+
+    if (user.role === 'instructor') {
+      await this.authRepository.removeUserById(instructorId)
+      /*       const declineSubject = 'Your Instructor Account Application'
+      const declineText = `
+        Dear ${user.username},
+
+        We regret to inform you that your application for an instructor account on LearnHub has been declined. Unfortunately, we are unable to proceed with your account at this time.
+
+        If you have any questions or require further information, please feel free to contact us.
+
+        Best regards,
+        The LearnHub Team
+      `
+
+      await sendMail(user.email, declineSubject, declineText) */
+      return { message: 'Instructor removed' }
+    } else {
+      const updatedUser = await this.authRepository.updateUserStatus(instructorId, 'declined')
+      return updatedUser
+    }
+  }
+
+  async getPendingInstructors () {
+    return await this.authRepository.findPendingInstructors()
+  }
+
+  async createAdmin (username, email, password) {
+    const existingUserEmail = await this.authRepository.findAdminByEmail(email)
+    const existingUserName = await this.authRepository.findAdminByUsername(username)
+
+    if (existingUserEmail) {
+      throw new Error('Email already taken')
+    }
+
+    if (existingUserName) {
+      throw new Error('Username already taken')
+    }
+
+    const auth = getAuth(firebaseApp)
+    await createUserWithEmailAndPassword(auth, email, password)
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    const newUser = {
+      username,
+      email,
+      password: hashedPassword,
+      role: 'admin',
+      status: 'approved'
+    }
+
+    const savedUser = await this.authRepository.createAdminUser(newUser)
+
+    return { message: 'Admin created successfully', savedUser }
+  }
+
+  async adminLogin (email, password) {
+    const user = await this.authRepository.findAdminByEmail(email)
+    console.log('Admin user:', user)
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    if (user.role !== 'admin') {
+      throw new Error('Not authorized')
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password)
+
+    if (!isMatch) {
+      throw new Error('Invalid credentials')
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role }, // Include role in the token payload
+      process.env.JWT_SECRET,
+      { expiresIn: '1h', algorithm: 'HS256' } // Specify the algorithm
+    )
+
+    return { message: 'Login successful', token }
   }
 }
 module.exports = AuthService

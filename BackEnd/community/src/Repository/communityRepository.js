@@ -1,4 +1,7 @@
-const { Community, Post, Member } = require('../models/community')
+const { Community, Post } = require('../models/community')
+const { admin } = require('../Config/firebaseeconfig')
+const bucket = admin.storage().bucket()
+console.log(`Bucket name: ${bucket.name}`)
 const mongoose = require('mongoose')
 
 class CommunityRepository {
@@ -145,16 +148,23 @@ class CommunityRepository {
 
   async uploadFile (communityId, userId, file, fileDetails) {
     try {
+      console.log('Repository - uploadFile:', { communityId, userId, file, fileDetails })
       const community = await Community.findById(communityId)
       if (!community) {
+        console.error('Community not found:', communityId)
         throw new Error('Community not found')
       }
 
-      if (community.ownerID !== userId) {
-        throw new Error('You are not authorized to upload.')
-      }
+      const filePath = `uploads/${Date.now()}_${file.originalname}`
+      const fileRef = bucket.file(filePath)
 
-      const fileLink = `https://storage.googleapis.com/${file.bucket}/${file.originalname}`
+      await fileRef.save(file.buffer, {
+        metadata: {
+          contentType: file.mimetype
+        }
+      })
+
+      const fileLink = `https://storage.googleapis.com/${bucket.name}/${filePath}`
       const newFile = {
         link: fileLink,
         title: fileDetails.title,
@@ -168,6 +178,7 @@ class CommunityRepository {
 
       return { downloadURL: fileLink }
     } catch (error) {
+      console.error('Error in uploadFile repository:', error)
       throw new Error(`Failed to upload file: ${error.message}`)
     }
   }

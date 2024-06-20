@@ -49,6 +49,10 @@ class AuthController {
 
   async register (req, res) {
     const user = req.body
+    const cvFilePath = req.file ? req.file.path : ''
+
+    console.log('Role:', user.role) // Log the role to check its value
+    console.log('CV File Path:', cvFilePath) // Log the cvFile path to check its value
 
     try {
       const existingUserEmail = await this.authService.existingUserEmail(user.email)
@@ -63,12 +67,15 @@ class AuthController {
       }
 
       const auth = getAuth(firebaseApp)
-
       const { email, password } = user
       await createUserWithEmailAndPassword(auth, email, password)
 
+      if (user.role === 'instructor') {
+        user.cv = cvFilePath
+      }
+
       const result = await this.authService.registerUser(user)
-      console.log(`user: ${result}`)
+      console.log(`User: ${result}`)
       res.json(result)
     } catch (err) {
       res.status(400).json({ message: err.message })
@@ -83,29 +90,34 @@ class AuthController {
       const firebaseUid = userCredential.user.uid
 
       const mongoUser = await this.authService.getMongoUserFromEmail(email)
+      console.log('Retrieved MongoDB user:', mongoUser)
 
-      const mongoUserID = mongoUser._id
-      const mongoUserName = mongoUser.username
-      const userProfilePic = mongoUser.profilepic
-      console.log('userProfilePicuserProfilePic :', userProfilePic)
+      if (!mongoUser) {
+        throw new Error('User not found in MongoDB')
+      }
 
-      await admin.auth().setCustomUserClaims(firebaseUid, { mongoUserID, mongoUserName, email, userProfilePic })
-        .then(() => {
-          console.log('Custom claims set successfully')
-        })
-        .catch(error => {
-          console.error('Error setting custom claims:', error)
-        })
+      if (mongoUser.status !== 'approved') {
+        return res.status(403).json({ errorCode: 'ACCOUNT_NOT_APPROVED', errorMessage: 'Account is not approved' })
+      }
 
+      // Set custom claims
+      const customClaims = {
+        mongoUserID: mongoUser._id.toString(),
+        mongoUserName: mongoUser.username,
+        email: mongoUser.email,
+        userProfilePic: mongoUser.profilepic,
+        userRole: mongoUser.role
+      }
+      await admin.auth().setCustomUserClaims(firebaseUid, customClaims)
+
+      // Get Firebase token
       const token = await userCredential.user.getIdToken(true)
 
-      console.log('token :', token)
       res.cookie('token', token, { httpOnly: true })
       res.json({ message: 'Authentication successful', token })
     } catch (error) {
-      const errorCode = error.code
-      const errorMessage = error.message
-      res.status(400).json({ errorCode, errorMessage })
+      console.error('Login error:', error)
+      res.status(400).json({ errorCode: error.code, errorMessage: error.message })
     }
   }
 
@@ -237,6 +249,67 @@ class AuthController {
     } catch (error) {
       console.error(error)
       res.status(500).json({ error: error.message })
+    }
+  }
+
+  async approveInstructor (req, res) {
+    try {
+      const { instructorId } = req.params
+      const user = await this.authService.approveInstructor(instructorId)
+      if (!user) {
+        throw new Error('Instructor not found')
+      }
+      res.json({ message: 'Instructor approved successfully', user })
+    } catch (err) {
+      res.status(400).json({ message: err.message })
+    }
+  }
+
+  async declineInstructor (req, res) {
+    try {
+      const { instructorId } = req.params
+      const user = await this.authService.declineInstructor(instructorId)
+      if (!user) {
+        throw new Error('Instructor not found')
+      }
+      res.json({ message: 'Instructor declined successfully', user })
+    } catch (err) {
+      res.status(400).json({ message: err.message })
+    }
+  }
+
+  async getPendingInstructors (req, res) {
+    try {
+      const pendingInstructors = await this.authService.getPendingInstructors()
+      res.json(pendingInstructors)
+    } catch (err) {
+      res.status(400).json({ message: err.message })
+    }
+  }
+
+  async createAdmin (req, res) {
+    const { username, email, password } = req.body
+
+    console.log(username)
+    console.log(email)
+    console.log(password)
+
+    try {
+      const result = await this.authService.createAdmin(username, email, password)
+      res.json(result)
+    } catch (err) {
+      res.status(400).json({ message: err.message })
+    }
+  }
+
+  async adminLogin (req, res) {
+    const { email, password } = req.body
+
+    try {
+      const result = await this.authService.adminLogin(email, password)
+      res.json(result)
+    } catch (err) {
+      res.status(400).json({ message: err.message })
     }
   }
 }

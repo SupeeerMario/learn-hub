@@ -1,4 +1,5 @@
 const { User } = require('../models/user')
+const { Admin } = require('../models/user')
 
 class AuthRepository {
   async createUser (userData) {
@@ -19,7 +20,7 @@ class AuthRepository {
     try {
       console.log(email)
 
-      const user = await User.findOne({ email }, { _id: 1, username: 1, profilepic: 1 }).lean()
+      const user = await User.findOne({ email }, { _id: 1, username: 1, profilepic: 1, role: 1, status: 1 }).lean()
       return user
     } catch (error) {
       console.error('Error finding user by email:', error)
@@ -88,6 +89,54 @@ class AuthRepository {
 
   async updateUser (userId, updateData) {
     return await User.findByIdAndUpdate(userId, updateData, { new: true })
+  }
+
+  async updateUserStatus (userId, status) {
+    return await User.findByIdAndUpdate(userId, { status }, { new: true })
+  }
+
+  async removeUserById (userId) {
+    try {
+      const user = await User.findByIdAndDelete(userId)
+      return user
+    } catch (error) {
+      console.error('Error removing user by ID:', error)
+      throw error
+    }
+  }
+
+  async findPendingInstructors () {
+    return await User.find({ role: 'instructor', status: 'pending' }, 'id cv')
+  }
+
+  async createAdminUser (adminData) {
+    try {
+      const newAdmin = await Admin.create(adminData)
+      return newAdmin.toObject()
+    } catch (error) {
+      console.error('Error creating admin user:', error)
+      throw error
+    }
+  }
+
+  async findAdminByEmail (email) {
+    try {
+      const admin = await Admin.findOne({ email }).lean()
+      return admin
+    } catch (error) {
+      console.error('Error finding admin by email:', error)
+      throw error
+    }
+  }
+
+  async findAdminByUsername (username) {
+    try {
+      const admin = await Admin.findOne({ username }).lean()
+      return admin
+    } catch (error) {
+      console.error('Error finding admin by username:', error)
+      throw error
+    }
   }
 }
 

@@ -7,7 +7,6 @@ const MemberSchema = new mongoose.Schema({
 })
 
 const FileSchema = new mongoose.Schema({
-  title: { type: String, required: true },
   file: { type: String, required: true }
 })
 

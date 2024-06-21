@@ -67,12 +67,12 @@ class CourseService {
     }
   }
 
-  async uploadFile (courseId, userId, file, fileDetails) {
+  async addMaterials (courseId, userId, materials) {
     try {
-      const result = await this.courseRepository.uploadFile(courseId, userId, file, fileDetails)
-      return result
+      const course = await this.courseRepository.addMaterials(courseId, userId, materials)
+      return course
     } catch (error) {
-      throw new Error(`Failed to upload file: ${error.message}`)
+      throw new Error(`Failed to add materials: ${error.message}`)
     }
   }
 
@@ -132,9 +132,9 @@ class CourseService {
     }
   }
 
-  async getRandomCourses () {
+  async getRandomCourses (userId) {
     try {
-      return await this.courseRepository.getRandomCourses()
+      return await this.courseRepository.getRandomCourses(userId)
     } catch (error) {
       console.error('CourseService - Error in getRandomCourses:', error)
       throw new Error('Failed to fetch random courses')
@@ -147,6 +147,39 @@ class CourseService {
       return course
     } catch (error) {
       throw new Error(`Failed to update course: ${error.message}`)
+    }
+  }
+
+  async uploadMaterial (courseId, userId, materials) {
+    try {
+      console.log('Service - uploadMaterial:', { courseId, userId, materials })
+      const result = await this.courseRepository.uploadMaterial(courseId, userId, materials)
+      return result
+    } catch (error) {
+      console.error('Error in uploadMaterial service:', error)
+      throw new Error(`Failed to upload material: ${error.message}`)
+    }
+  }
+
+  async joinCourse (userId, username, userEmail, userProfilePic, courseId) {
+    try {
+      console.log('Service - joinCourse:', { userId, courseId })
+      const result = await this.courseRepository.joinCourse(userId, username, userEmail, userProfilePic, courseId)
+      return result
+    } catch (error) {
+      console.error('Error in joinCourse service:', error)
+      throw new Error(`Failed to join course: ${error.message}`)
+    }
+  }
+
+  async getJoinedCoursesForUser (userId) {
+    try {
+      console.log('Service - getJoinedCoursesForUser:', { userId })
+      const result = await this.courseRepository.getJoinedCoursesForUser(userId)
+      return result
+    } catch (error) {
+      console.error('Error in getJoinedCoursesForUser service:', error)
+      throw new Error(`Failed to get joined courses: ${error.message}`)
     }
   }
 }

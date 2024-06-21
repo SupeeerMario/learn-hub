@@ -2,6 +2,7 @@ const { Courses, Post } = require('../models/courses')
 const { admin } = require('../Config/firebaseeconfig')
 const bucket = admin.storage().bucket()
 const mongoose = require('mongoose')
+const ObjectId = mongoose.Types.ObjectId
 
 class CourseRepository {
   async createCourse (courseData) {
@@ -104,35 +105,19 @@ class CourseRepository {
     }
   }
 
-  async uploadFile (courseId, userId, file, fileDetails) {
+  async addMaterials (courseId, userId, materials) {
     try {
       const course = await Courses.findById(courseId)
       if (!course) {
         throw new Error('Course not found')
       }
 
-      const filePath = `uploads/${Date.now()}_${file.originalname}`
-      const fileRef = bucket.file(filePath)
-
-      await fileRef.save(file.buffer, {
-        metadata: {
-          contentType: file.mimetype
-        }
-      })
-
-      const fileLink = `https://storage.googleapis.com/${bucket.name}/${filePath}`
-      const newFile = {
-        link: fileLink,
-        title: fileDetails.title,
-        description: fileDetails.description
-      }
-
-      course.materials.push(newFile)
+      course.materials.push(...materials)
       await course.save()
 
-      return { downloadURL: fileLink }
+      return course
     } catch (error) {
-      throw new Error(`Failed to upload file: ${error.message}`)
+      throw new Error(`Failed to add materials: ${error.message}`)
     }
   }
 
@@ -158,10 +143,22 @@ class CourseRepository {
     }
   }
 
-  async getRandomCourses (limit = 6) {
+  async getRandomCourses (userId, limit = 6) {
     try {
-      const courses = await Courses.aggregate([{ $sample: { size: limit } }])
-      return courses.map(course => ({ _id: course._id, name: course.name, about: course.about, level: course.level, language: course.language, completed: course.completed }))
+      const courses = await Courses.aggregate([
+        { $match: { 'members._id': { $ne: new ObjectId(userId) } } }, // Exclude courses where the user is a member
+        { $sample: { size: limit } }
+      ])
+
+      return courses.map(course => ({
+        _id: course._id,
+        name: course.name,
+        about: course.about,
+        level: course.level,
+        materials: course.materials,
+        language: course.language,
+        completed: course.completed
+      }))
     } catch (error) {
       console.error('CourseRepository - Error in getRandomCourses:', error)
       throw new Error('Failed to fetch random courses')
@@ -178,6 +175,68 @@ class CourseRepository {
       return course
     } catch (error) {
       throw new Error(`Failed to update course: ${error.message}`)
+    }
+  }
+
+  async uploadMaterial (courseId, userId, materials) {
+    try {
+      console.log('Repository - uploadMaterial:', { courseId, userId, materials })
+      const course = await Courses.findById(courseId)
+      if (!course) {
+        console.error('Course not found:', courseId)
+        throw new Error('Course not found')
+      }
+
+      materials.forEach((material) => {
+        course.materials.push(material)
+      })
+
+      await course.save()
+
+      return { course }
+    } catch (error) {
+      console.error('Error in uploadMaterial repository:', error)
+      throw new Error(`Failed to upload material: ${error.message}`)
+    }
+  }
+
+  async joinCourse (userId, username, userEmail, userProfilePic, courseId) {
+    try {
+      console.log('Repository - joinCourse:', { userId, courseId })
+      const course = await Courses.findById(courseId)
+      if (!course) {
+        console.error('Course not found:', courseId)
+        throw new Error('Course not found')
+      }
+
+      if (course.members.some(member => member._id.toString() === userId)) {
+        console.error('User already joined the course:', { userId, courseId })
+        throw new Error('User already joined the course')
+      }
+
+      course.members.push({
+        _id: userId,
+        username,
+        email: userEmail,
+        profilepic: userProfilePic
+      })
+
+      await course.save()
+      return { message: 'User successfully joined the course' }
+    } catch (error) {
+      console.error('Error in joinCourse repository:', error)
+      throw new Error(`Failed to join course: ${error.message}`)
+    }
+  }
+
+  async getJoinedCoursesForUser (userId) {
+    try {
+      console.log('Repository - getJoinedCoursesForUser:', { userId })
+      const courses = await Courses.find({ 'members._id': userId })
+      return courses
+    } catch (error) {
+      console.error('Error in getJoinedCoursesForUser repository:', error)
+      throw new Error(`Failed to get joined courses: ${error.message}`)
     }
   }
 }

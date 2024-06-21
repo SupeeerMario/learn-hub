@@ -4,6 +4,7 @@ const { bucket } = require('../Config/firebaseeconfig')
 class CourseController {
   constructor () {
     this.courseService = new CourseService()
+    this.joinCourse = this.joinCourse.bind(this)
   }
 
   async addNewCourse (req, res) {
@@ -110,23 +111,68 @@ class CourseController {
     }
   }
 
-  async uploadFile (req, res) {
+  async uploadMaterial (req, res) {
     try {
-      const file = req.file
+      console.log('Received request for /course/upload/:courseId')
+      console.log('Request Files:', req.files) // Log the files received
+      console.log('Request Body:', req.body) // Log the body received
+
+      const files = req.files
       const userId = req.mongouserId
       const courseId = req.params.courseId
-      const { title, description } = req.body
+      const { lectures } = req.body
 
-      if (!file) {
+      if (!files || files.length === 0) {
+        console.error('No file uploaded')
         return res.status(400).json({ error: 'No file uploaded.' })
       }
 
-      const fileDetails = { title, description }
+      const materials = []
 
-      const result = await this.courseService.uploadFile(courseId, userId, file, fileDetails)
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        console.log('Processing file:', file.originalname)
+
+        const blob = bucket.file(Date.now() + '_' + file.originalname)
+        const blobStream = blob.createWriteStream({
+          metadata: {
+            contentType: file.mimetype
+          }
+        })
+
+        await new Promise((resolve, reject) => {
+          blobStream.on('error', (error) => {
+            console.error('Blob stream error:', error)
+            reject(error)
+          })
+
+          blobStream.on('finish', async () => {
+            try {
+              await blob.makePublic()
+              const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+              materials.push({
+                lecture: lectures[i],
+                file: publicUrl
+              })
+              console.log('File uploaded to:', publicUrl)
+              resolve()
+            } catch (error) {
+              console.error('Error making file public:', error)
+              reject(error)
+            }
+          })
+
+          // Write the file buffer to the blob stream
+          blobStream.end(file.buffer)
+        })
+      }
+
+      // Call the service to save the file details to the course
+      const result = await this.courseService.uploadMaterial(courseId, userId, materials)
 
       res.json(result)
     } catch (error) {
+      console.error('Error in uploadMaterial controller:', error)
       res.status(500).json({ error: 'Internal Server Error' })
     }
   }
@@ -193,7 +239,8 @@ class CourseController {
 
   async getRandomCourses (req, res) {
     try {
-      const courses = await this.courseService.getRandomCourses()
+      const userId = req.mongouserId
+      const courses = await this.courseService.getRandomCourses(userId)
       res.json(courses)
     } catch (error) {
       console.error('Error in getRandomCourses:', error)
@@ -209,6 +256,38 @@ class CourseController {
       res.json({ course, message: `Course marked as ${completed ? 'completed' : 'ongoing'} successfully` })
     } catch (error) {
       res.status(400).json({ message: error.message })
+    }
+  }
+
+  async joinCourse (req, res) {
+    try {
+      const userId = req.mongouserId
+      const username = req.username
+      const userEmail = req.useremail
+      const userProfilePic = req.userProfilePic || ''
+
+      const courseId = req.params.courseId
+
+      console.log('Joining course:', { userId, courseId })
+
+      const result = await this.courseService.joinCourse(userId, username, userEmail, userProfilePic, courseId)
+      res.json(result)
+    } catch (error) {
+      console.error('Error in joinCourse controller:', error)
+      res.status(500).json({ error: 'Internal Server Error' })
+    }
+  }
+
+  async getJoinedCoursesForUser (req, res) {
+    try {
+      const userId = req.mongouserId
+      console.log('Getting joined courses for user:', { userId })
+
+      const result = await this.courseService.getJoinedCoursesForUser(userId)
+      res.json(result)
+    } catch (error) {
+      console.error('Error in getJoinedCoursesForUser controller:', error)
+      res.status(500).json({ error: 'Internal Server Error' })
     }
   }
 }

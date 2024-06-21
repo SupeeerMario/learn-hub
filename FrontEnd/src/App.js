@@ -5,7 +5,8 @@ import Login from './pages/login/login';
 import Register from './pages/register/Register';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import Landing from './components/landingPage/landing';
-import Dashboard from './pages/Dashboard/Dashboard';
+import INSTDashboard from './pages/Dashboard/INSTDashboard';
+import STUDashboard from './pages/Dashboard/STUDashboard';
 import Community from './pages/Communities/Community';
 import CreateCommunity from './pages/Communities/CreateCommunity';
 import Package from './pages/packagePage/package';
@@ -71,7 +72,8 @@ function App() {
         <Route exact path="/CreateCourse" element={<CreateCourse />} />
 
         <Route exact path="/Packages" element={<Package />} />
-        <Route exact path="/Dashboard" element={<Dashboard />} />
+        <Route exact path="/Dashboard" element={<INSTDashboard />} />
+        <Route exact path="/Dashboard" element={<INSTDashboard />} />
         <Route exact path="/Home" element={<Landing />} />
         <Route exact path="/AI" element={<AI />} />
         <Route exact path="/ToDoList" element={<Todos  />} />

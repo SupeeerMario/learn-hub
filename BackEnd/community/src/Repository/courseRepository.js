@@ -265,6 +265,33 @@ class CourseRepository {
     if (!course) throw new Error('Course not found')
     return course.feedbacks
   }
+
+  async getCoursesByEnrollment () {
+    return await Courses.aggregate([
+      {
+        $project: {
+          _id: '$_id',
+          name: '$name',
+          enrollmentCount: { $size: '$members' }
+        }
+      },
+      { $sort: { enrollmentCount: -1 } }
+    ])
+  };
+
+  async getCoursesByAvgFeedback () {
+    return await Courses.aggregate([
+      { $unwind: '$feedbacks' },
+      {
+        $group: {
+          _id: '$_id',
+          name: { $first: '$name' },
+          avgFeedback: { $avg: '$feedbacks.rating' }
+        }
+      },
+      { $sort: { avgFeedback: -1 } }
+    ])
+  };
 }
 
 module.exports = CourseRepository

@@ -201,6 +201,14 @@ class CourseService {
   async getFeedbacks (courseId) {
     return await this.courseRepository.getFeedbacks(courseId)
   }
+
+  async getCoursesByEnrollment () {
+    return await this.coursesRepository.getCoursesByEnrollment()
+  };
+
+  async getCoursesByAvgFeedback () {
+    return await this.coursesRepository.getCoursesByAvgFeedback()
+  };
 }
 
 module.exports = CourseService

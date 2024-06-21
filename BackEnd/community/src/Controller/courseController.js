@@ -339,6 +339,24 @@ class CourseController {
       res.status(500).json({ error: error.message })
     }
   }
+
+  async getCoursesByEnrollment (req, res) {
+    try {
+      const courses = await this.coursesService.getCoursesByEnrollment()
+      res.status(200).json(courses)
+    } catch (error) {
+      res.status(500).json({ message: error.message })
+    }
+  };
+
+  async getCoursesByAvgFeedback (req, res) {
+    try {
+      const courses = await this.coursesService.getCoursesByAvgFeedback()
+      res.status(200).json(courses)
+    } catch (error) {
+      res.status(500).json({ message: error.message })
+    }
+  };
 }
 
 module.exports = CourseController

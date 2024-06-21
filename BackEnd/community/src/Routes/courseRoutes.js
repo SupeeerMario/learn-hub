@@ -51,7 +51,10 @@ router.post('/new', courseMiddlewares.userFromToken, multiUpload, courseControll
 router.get('/get/:courseId', courseMiddlewares.userFromToken, courseController.findCourseById.bind(courseController))
 router.get('/getallforuser', courseMiddlewares.userFromToken, courseController.getCourses.bind(courseController))
 router.get('/getCourseuser', courseMiddlewares.userFromToken, courseController.getCourseuser.bind(courseController))
+router.get('/getCourseuser', courseMiddlewares.userFromToken, courseController.getCourseuser.bind(courseController))
+router.get('/getownerusername/:courseId', courseMiddlewares.userFromToken, courseController.getFirstMemberUsername.bind(courseController))
 router.post('/join/:courseId', courseMiddlewares.userFromToken, courseController.joinCourse)
+
 router.get('/joined-courses', courseMiddlewares.userFromToken, courseController.getJoinedCoursesForUser.bind(courseController))
 router.post('/upload/:courseId', upload.array('files'), courseController.uploadMaterial.bind(courseController))
 router.get('/getFilesFromCourse/:courseId', courseMiddlewares.userFromToken, courseController.getFilesFromCourse.bind(courseController))

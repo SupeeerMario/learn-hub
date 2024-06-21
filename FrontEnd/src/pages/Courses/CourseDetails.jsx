@@ -9,7 +9,7 @@ import nopic from "../../components/images/404.jpeg";
 const CourseDetails = () => {
     const { courseId } = useParams();
     const [courseDetails, setCourseDetails] = useState(null);
-    const [ownerDetails, setOwnerDetails] = useState(null);
+    const [ownerUsername, setOwnerUsername] = useState('');
     const [status, setStatus] = useState('Ongoing'); // Default to "Ongoing"
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [showCompletionBar, setShowCompletionBar] = useState(false);
@@ -48,7 +48,12 @@ const CourseDetails = () => {
                     }))
                 }));
 
-                const responseOwner = await fetch(`http://localhost:8002/auth/profile`, {
+                const role = Cookies.get('userRole');
+                setUserRole(role);
+                setFeedbacks(data.course.feedbacks || []); // Ensure feedbacks is set to an array
+
+                // Fetch owner username
+                const responseOwner = await fetch(`http://localhost:8003/course/getownerusername/${courseId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -56,12 +61,8 @@ const CourseDetails = () => {
                     credentials: 'include'
                 });
                 const ownerData = await responseOwner.json();
-                setOwnerDetails(ownerData);
-
-                const role = Cookies.get('userRole');
-                setUserRole(role);
-                setFeedbacks(data.course.feedbacks || []); // Ensure feedbacks is set to an array
-
+                setOwnerUsername(ownerData.username);
+                
             } catch (error) {
                 console.error('Error fetching course details:', error);
             }
@@ -226,7 +227,7 @@ const CourseDetails = () => {
         }
     };
 
-    if (!courseDetails || !ownerDetails) {
+    if (!courseDetails || !ownerUsername) {
         return <div>Loading...</div>;
     }
 
@@ -266,7 +267,7 @@ const CourseDetails = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-medium">Instructor</h3>
-                                    <p className="text-gray-400">{ownerDetails.username}</p>
+                                    <p className="text-gray-400">{ownerUsername}</p>
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-medium">Language</h3>

@@ -275,6 +275,20 @@ class CourseController {
     }
   }
 
+  async getFirstMemberUsername (req, res) {
+    try {
+      const { courseId } = req.params
+      const course = await this.courseService.getCourseById(courseId)
+      if (course && course.members && course.members.length > 0) {
+        return res.status(200).json({ username: course.members[0].username })
+      } else {
+        return res.status(404).json({ message: 'No members found in the course' })
+      }
+    } catch (error) {
+      return res.status(500).json({ message: `Failed to fetch first member's username: ${error.message}` })
+    }
+  }
+
   async markCourseStatus (req, res) {
     try {
       const courseId = req.params.courseId

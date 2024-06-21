@@ -68,6 +68,27 @@ class CourseService {
     }
   }
 
+  async getCourseDetails (req, res) {
+    try {
+      const courseId = req.params.courseId
+      const course = await this.courseService.findCourseById(courseId)
+
+      if (!course) {
+        return res.status(404).json({ message: 'Course not found' })
+      }
+
+      const ownerDetails = await this.userService.getUserById(course.ownerId)
+      const courseResponse = {
+        ...course._doc,
+        ownerDetails
+      }
+
+      return res.status(200).json({ course: courseResponse })
+    } catch (error) {
+      return res.status(500).json({ message: error.message })
+    }
+  }
+
   async addMaterials (courseId, userId, materials) {
     try {
       const course = await this.courseRepository.addMaterials(courseId, userId, materials)

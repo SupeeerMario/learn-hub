@@ -289,10 +289,7 @@ const Courses = () => {
                                                 <div className="h-full bg-green-500 rounded-full" style={{ width: `${progress}%` }} />
                                             </div>
                                         </div>
-                                        <div className="flex justify-between items-center mt-4 text-sm">
-                                            <span>Due: Dec 19</span>
-                                            <span>HC/MC</span>
-                                        </div>
+
                                     </div>
                                 </div>
                             );

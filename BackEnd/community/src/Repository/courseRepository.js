@@ -144,6 +144,16 @@ class CourseRepository {
     }
   }
 
+  async findCoursesByUserId (userId) {
+    try {
+      const courses = await Courses.find({ 'members._id': userId }).lean()
+      return courses
+    } catch (error) {
+      console.error('CourseRepository - Error in findCoursesByUserId:', error)
+      throw new Error(`Failed to fetch courses: ${error.message}`)
+    }
+  }
+
   async getRandomCourses (userId, limit = 6) {
     try {
       const courses = await Courses.aggregate([

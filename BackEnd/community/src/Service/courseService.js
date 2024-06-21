@@ -133,6 +133,16 @@ class CourseService {
     }
   }
 
+  async getCoursesByuserId (userId) {
+    try {
+      const courses = await this.courseRepository.findCoursesByUserId(userId)
+      return courses
+    } catch (error) {
+      console.error('CourseService - Error in getCoursesByOwnerId:', error)
+      throw new Error(`Failed to fetch courses: ${error.message}`)
+    }
+  }
+
   async getRandomCourses (userId) {
     try {
       return await this.courseRepository.getRandomCourses(userId)

@@ -50,6 +50,7 @@ const multiUpload = upload.fields([{ name: 'files' }, { name: 'introVideo', maxC
 router.post('/new', courseMiddlewares.userFromToken, multiUpload, courseController.addNewCourse.bind(courseController))
 router.get('/get/:courseId', courseMiddlewares.userFromToken, courseController.findCourseById.bind(courseController))
 router.get('/getallforuser', courseMiddlewares.userFromToken, courseController.getCourses.bind(courseController))
+router.get('/getCourseuser', courseMiddlewares.userFromToken, courseController.getCourseuser.bind(courseController))
 router.post('/join/:courseId', courseMiddlewares.userFromToken, courseController.joinCourse)
 router.get('/joined-courses', courseMiddlewares.userFromToken, courseController.getJoinedCoursesForUser.bind(courseController))
 router.post('/upload/:courseId', upload.array('files'), courseController.uploadMaterial.bind(courseController))

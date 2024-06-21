@@ -25,6 +25,16 @@ const Sidebar = () => {
    }, [isLoggedOut, navigate]);
 
 
+   const getDashboardLink = () => {
+      if (userRole === 'instructor') {
+        return '/INSTDashboard';
+      }
+      if (userRole === 'student') {
+        return '/STUDashboard';
+      }
+      return '/Dashboard';
+    };
+
 
    const logout = async () => {
      try {
@@ -80,9 +90,7 @@ const Sidebar = () => {
                   </div>
                   <div class="flex items-center">
                      <div class="flex items-center ms-3">
-                     <button type="button" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200  dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                            <a href="">Join a Zoom Meeting </a>
-                        </button>
+
 
                         <button type="button" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200  dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
                         {/* <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
@@ -190,7 +198,7 @@ const Sidebar = () => {
 
                   </li>
                   {/* ================Dashboard==================== */}
-                  <Link to={'/Dashboard'}>
+                  <Link to={getDashboardLink()}>
                   <li>
                      <a href="Dashboard" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                         <svg class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 20">

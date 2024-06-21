@@ -253,6 +253,17 @@ class CourseController {
     }
   }
 
+  async getCourseuser (req, res) {
+    try {
+      const userId = req.mongouserId
+      const courses = await this.courseService.getCoursesByuserId(userId)
+      res.json(courses)
+    } catch (error) {
+      console.error('Error in getCourses:', error)
+      res.status(400).json({ message: error.message })
+    }
+  }
+
   async getRandomCourses (req, res) {
     try {
       const userId = req.mongouserId

@@ -72,8 +72,8 @@ function App() {
         <Route exact path="/CreateCourse" element={<CreateCourse />} />
 
         <Route exact path="/Packages" element={<Package />} />
-        <Route exact path="/Dashboard" element={<INSTDashboard />} />
-        <Route exact path="/Dashboard" element={<INSTDashboard />} />
+        <Route exact path="/INSTDashboard" element={<INSTDashboard />} />
+        <Route exact path="/STUDashboard" element={<STUDashboard />} />
         <Route exact path="/Home" element={<Landing />} />
         <Route exact path="/AI" element={<AI />} />
         <Route exact path="/ToDoList" element={<Todos  />} />

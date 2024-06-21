@@ -12,7 +12,10 @@ const CreateCourse = () => {
         level: 'Beginner',  // Default level
         language: 'Arabic',  // Default language
         materials: [],
+        introVideo: null,
     });
+
+    const [introVideoName, setIntroVideoName] = useState(''); // State to store intro video name
 
     const handleInputChange = (e) => {
         const { id, value } = e.target;
@@ -30,6 +33,17 @@ const CreateCourse = () => {
                 ...prevData,
                 materials: [...prevData.materials, newFile],
             }));
+        }
+    };
+
+    const handleIntroVideoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData((prevData) => ({
+                ...prevData,
+                introVideo: file,
+            }));
+            setIntroVideoName(file.name); // Set the name of the uploaded intro video
         }
     };
 
@@ -87,6 +101,10 @@ const CreateCourse = () => {
             formData.append('files', material.file); // Ensure files are all under the 'files' key
             formData.append('lectures', material.lecture); // Ensure lectures are all under the 'lectures' key
         });
+
+        if (data.introVideo) {
+            formData.append('introVideo', data.introVideo); // Append the intro video
+        }
     
         console.log('Form Data:', formData);
     
@@ -113,7 +131,6 @@ const CreateCourse = () => {
             console.error('Error creating course:', error);
         }
     };
-    
 
     return (
         <div className="flex flex-col bg-gray-800 min-h-screen">
@@ -204,7 +221,33 @@ const CreateCourse = () => {
                                     </select>
                                 </div>
                             </div>
-
+                            <div className="col-span-full">
+                                <label htmlFor="introVideo" className="block text-sm font-medium leading-6">
+                                    Introduction Video
+                                </label>
+                                <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-600/25 px-6 py-10">
+                                    <div className="text-center">
+                                        <div className="mt-4 flex text-sm leading-6">
+                                            <label
+                                                htmlFor="intro-video-upload"
+                                                className="relative cursor-pointer rounded-md bg-gray-700 font-semibold text-indigo-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500"
+                                            >
+                                                <span>Upload introduction video</span>
+                                                <input 
+                                                    id="intro-video-upload" 
+                                                    name="intro-video-upload" 
+                                                    type="file" 
+                                                    className="sr-only" 
+                                                    onChange={handleIntroVideoChange} 
+                                                />
+                                            </label>
+                                            <p className="pl-1">or drag and drop</p>
+                                        </div>
+                                        <p className="text-xs leading-5">MP4 up to 50MB</p>
+                                        {introVideoName && <p className="text-sm leading-5 text-gray-400 mt-2">Uploaded: {introVideoName}</p>}
+                                    </div>
+                                </div>
+                            </div>
                             <div className="col-span-full">
                                 <label htmlFor="materials" className="block text-sm font-medium leading-6">
                                     Course Materials

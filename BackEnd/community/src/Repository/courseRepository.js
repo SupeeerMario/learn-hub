@@ -11,7 +11,8 @@ class CourseRepository {
       const newCourse = await Courses.create({
         ...courseData,
         members: courseData.members || [],
-        materials: courseData.materials || []
+        materials: courseData.materials || [],
+        introVideo: courseData.introVideo || ''
       })
       console.log('CourseRepository - After creating course:', newCourse)
       return newCourse.toObject()
@@ -238,6 +239,31 @@ class CourseRepository {
       console.error('Error in getJoinedCoursesForUser repository:', error)
       throw new Error(`Failed to get joined courses: ${error.message}`)
     }
+  }
+
+  async addFeedback (courseId, feedback) {
+    try {
+      const course = await Courses.findById(courseId)
+      if (!course) throw new Error('Course not found')
+
+      console.log('Repository - addFeedback - course:', course)
+      console.log('Repository - addFeedback - feedback:', feedback)
+
+      course.feedbacks.push(feedback)
+      await course.save()
+
+      console.log('Repository - addFeedback - updated course:', course)
+      return course
+    } catch (error) {
+      console.error('Repository - addFeedback - error:', error)
+      throw new Error(error.message)
+    }
+  }
+
+  async getFeedbacks (courseId) {
+    const course = await Courses.findById(courseId).populate('feedbacks.userId', 'username email profilepic')
+    if (!course) throw new Error('Course not found')
+    return course.feedbacks
   }
 }
 

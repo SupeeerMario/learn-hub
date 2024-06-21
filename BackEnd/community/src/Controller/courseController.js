@@ -21,45 +21,60 @@ class CourseController {
       console.log('Request Body:', req.body)
       console.log('Request Files:', req.files)
 
-      const files = req.files
+      const files = req.files.files || []
+      const introVideo = req.files.introVideo ? req.files.introVideo[0] : null
       const materials = []
+      let introVideoUrl = ''
 
-      console.log('Bucket:', bucket) // Log bucket to check if it is correctly imported
-      console.log('Bucket type:', typeof bucket) // Log the type of bucket
+      // Function to upload a file to Firebase Storage
+      const uploadFileToFirebase = (file) => {
+        return new Promise((resolve, reject) => {
+          const blob = bucket.file(Date.now() + '_' + file.originalname)
+          const blobStream = blob.createWriteStream({
+            metadata: {
+              contentType: file.mimetype
+            }
+          })
 
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i]
-        console.log('Processing file:', file.originalname) // Log each file being processed
-        const blob = bucket.file(Date.now() + '_' + file.originalname)
-        console.log('Blob:', blob) // Log blob to ensure it is created correctly
-        const blobStream = blob.createWriteStream({
-          metadata: {
-            contentType: file.mimetype
-          }
-        })
-
-        await new Promise((resolve, reject) => {
-          blobStream.on('error', error => {
-            console.error('Blob stream error:', error)
+          blobStream.on('error', (error) => {
             reject(error)
           })
 
           blobStream.on('finish', async () => {
             const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`
-            materials.push({
-              title: req.body.lectures[i],
-              file: publicUrl
-            })
-
-            // Make the file public
             await blob.makePublic()
-
-            console.log('File uploaded to:', publicUrl) // Log the public URL of the uploaded file
-            resolve()
+            resolve(publicUrl)
           })
 
           blobStream.end(file.buffer)
         })
+      }
+
+      // Upload course materials
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        try {
+          const publicUrl = await uploadFileToFirebase(file)
+          materials.push({
+            title: req.body.lectures[i],
+            file: publicUrl
+          })
+          console.log('File uploaded to:', publicUrl) // Log the public URL of the uploaded file
+        } catch (error) {
+          console.error('Blob stream error:', error)
+          return res.status(500).json({ message: 'Error uploading files' })
+        }
+      }
+
+      // Upload intro video if present
+      if (introVideo) {
+        try {
+          introVideoUrl = await uploadFileToFirebase(introVideo)
+          console.log('Intro video uploaded to:', introVideoUrl) // Log the public URL of the uploaded file
+        } catch (error) {
+          console.error('Blob stream error:', error)
+          return res.status(500).json({ message: 'Error uploading intro video' })
+        }
       }
 
       const course = {
@@ -68,6 +83,7 @@ class CourseController {
         about: req.body.about,
         level: req.body.level,
         language: req.body.language,
+        introVideo: introVideoUrl,
         materials,
         members: [
           {
@@ -288,6 +304,39 @@ class CourseController {
     } catch (error) {
       console.error('Error in getJoinedCoursesForUser controller:', error)
       res.status(500).json({ error: 'Internal Server Error' })
+    }
+  }
+
+  async addFeedback (req, res) {
+    try {
+      const { courseId } = req.params
+      const { rating, feedback } = req.body
+      const userId = req.mongouserId
+      const username = req.username
+      const profilepic = req.userProfilePic || ''
+
+      console.log('Controller - addFeedback - courseId:', courseId)
+      console.log('Controller - addFeedback - userId:', userId)
+      console.log('Controller - addFeedback - username:', username)
+      console.log('Controller - addFeedback - profilepic:', profilepic)
+      console.log('Controller - addFeedback - rating:', rating)
+      console.log('Controller - addFeedback - feedback:', feedback)
+
+      const updatedCourse = await this.courseService.addFeedback(courseId, userId, username, profilepic, rating, feedback)
+      res.json(updatedCourse)
+    } catch (error) {
+      console.error('Controller - addFeedback - error:', error)
+      res.status(500).json({ error: error.message })
+    }
+  }
+
+  async getFeedbacks (req, res) {
+    try {
+      const { courseId } = req.params
+      const feedbacks = await this.courseService.getFeedbacks(courseId)
+      res.json(feedbacks)
+    } catch (error) {
+      res.status(500).json({ error: error.message })
     }
   }
 }

@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import Sidebar from '../../components/StickyComponent/Side Bar/Sidebar';
 import profilepic from "../../components/images/profile.jpg";
 import Cookies from 'js-cookie';
+import StarRatings from 'react-star-ratings';
+import nopic from "../../components/images/404.jpeg";
 
 const CourseDetails = () => {
     const { courseId } = useParams();
@@ -12,7 +14,12 @@ const CourseDetails = () => {
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [showCompletionBar, setShowCompletionBar] = useState(false);
     const [isUploadPopupOpen, setIsUploadPopupOpen] = useState(false);
+    const [isFeedbackPopupOpen, setIsFeedbackPopupOpen] = useState(false);
     const [userRole, setUserRole] = useState('');
+    const [rating, setRating] = useState(0);
+    const [feedback, setFeedback] = useState('');
+    const [feedbacks, setFeedbacks] = useState([]);
+
     const [data, setData] = useState({
         materials: [],
     });
@@ -29,8 +36,8 @@ const CourseDetails = () => {
                 });
                 const data = await response.json();
                 setCourseDetails(data.course);
-                setStatus(data.course.completed ? 'Completed' : 'Ongoing'); // Set initial status based on course completion status
-                setShowCompletionBar(data.course.completed); // Set showCompletionBar based on fetched completed status
+                setStatus(data.course.completed ? 'Completed' : 'Ongoing');
+                setShowCompletionBar(data.course.completed);
                 setData((prevData) => ({
                     ...prevData,
                     materials: data.course.materials.map((material, index) => ({
@@ -53,6 +60,8 @@ const CourseDetails = () => {
 
                 const role = Cookies.get('userRole');
                 setUserRole(role);
+                setFeedbacks(data.course.feedbacks || []); // Ensure feedbacks is set to an array
+
             } catch (error) {
                 console.error('Error fetching course details:', error);
             }
@@ -185,6 +194,38 @@ const CourseDetails = () => {
         }
     };
 
+    const handleFeedbackSubmit = async () => {
+        const token = Cookies.get('token');
+        try {
+            const response = await fetch(`http://localhost:8003/course/feedback/${courseId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ rating, feedback }),
+                credentials: 'include'
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to submit feedback');
+            }
+    
+            const updatedCourse = await response.json();
+            console.log('Feedback submitted successfully:', updatedCourse);
+    
+            // Reset feedback and rating
+            setFeedback('');
+            setRating(0);
+            setIsFeedbackPopupOpen(false);
+    
+            // Update feedbacks state with the new feedback
+            setFeedbacks(updatedCourse.feedbacks || []); // Ensure feedbacks is updated correctly
+        } catch (error) {
+            console.error('Error submitting feedback:', error);
+        }
+    };
+
     if (!courseDetails || !ownerDetails) {
         return <div>Loading...</div>;
     }
@@ -259,82 +300,61 @@ const CourseDetails = () => {
                     </div>
                     <div className="space-y-6 px-8">
                         <div className="aspect-video rounded-lg overflow-hidden">
-                            <iframe
-                                width="100%"
-                                height="100%"
-                                src="https://www.youtube.com/embed/zpdOGUIw9dA"
-                                title="YouTube video player"
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            />
-                        </div>
-                        <div className="space-y-4">
-                            <h2 className="text-2xl font-bold">Video Details</h2>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <h3 className="text-lg font-medium">Duration</h3>
-                                    <p className="text-gray-400">45 minutes</p>
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-medium">Publisher</h3>
-                                    <p className="text-gray-400">{ownerDetails.username}</p>
-                                </div>
-                            </div>
+                            {courseDetails.introVideo ? (
+                                <video width="100%" height="100%" controls>
+                                    <source src={courseDetails.introVideo} type="video/mp4" />
+                                    Your browser does not support the video tag.
+                                </video>
+                            ) : (
+                                <iframe
+                                    width="100%"
+                                    height="100%"
+                                    src="https://www.youtube.com/embed/zpdOGUIw9dA"
+                                    title="YouTube video player"
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
                 <div className="mt-12 ml-4 mr-4 p-4">
                     <h2 className="text-2xl font-bold mb-4">Student Feedback</h2>
+                    {userRole === 'student' && status === 'Completed' && (
+                        <button
+                            type="button"
+                            className="py-2.5 px-5 mb-2 text-sm font-medium text-gray-900 focus:outline-none rounded-lg border border-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                            onClick={() => setIsFeedbackPopupOpen(true)}
+                        >
+                            Add Feedback
+                        </button>
+                    )}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
-                            <div className="p-4">
-                                <div className="flex items-center space-x-4">
-                                    <img src={profilepic} alt="Avatar" width={48} height={48} className="rounded-full" />
-                                    <div>
-                                        <h3 className="text-lg font-medium">Jane Doe</h3>
-                                        <p className="text-gray-400">5 out of 5 stars</p>
+                        {feedbacks.map((feedbackItem, index) => (
+                            <div key={index} className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
+                                <div className="p-4">
+                                    <div className="flex items-center space-x-4">
+                                        <img src={feedbackItem.profilepic || profilepic || nopic} alt="Avatar" width={48} height={48} className="rounded-full" />
+                                        <div>
+                                            <h3 className="text-lg font-medium">{feedbackItem.username}</h3>
+                                            <StarRatings
+                                                rating={feedbackItem.rating}
+                                                starRatedColor="yellow"
+                                                numberOfStars={5}
+                                                starDimension="20px"
+                                                starSpacing="3px"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="p-4 border-t border-gray-700">
-                                <p className="text-gray-400">
-                                    This course was amazing! The instructor was very knowledgeable and the content was well-structured. I highly recommend it to anyone interested in web development.
-                                </p>
-                            </div>
-                        </div>
-                        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
-                            <div className="p-4">
-                                <div className="flex items-center space-x-4">
-                                    <img src={profilepic} alt="Avatar" width={48} height={48} className="rounded-full" />
-                                    <div>
-                                        <h3 className="text-lg font-medium">Ahmed Magdy</h3>
-                                        <p className="text-gray-400">4 out of 5 stars</p>
-                                    </div>
+                                <div className="p-4 border-t border-gray-700">
+                                    <p className="text-gray-400">
+                                        {feedbackItem.feedback}
+                                    </p>
                                 </div>
                             </div>
-                            <div className="p-4 border-t border-gray-700">
-                                <p className="text-gray-400">
-                                    The course was very informative and the instructor did a great job explaining the concepts. I learned a lot and feel more confident in my web development skills.
-                                </p>
-                            </div>
-                        </div>
-                        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
-                            <div className="p-4">
-                                <div className="flex items-center space-x-4">
-                                    <img src={profilepic} alt="Avatar" width={48} height={48} className="rounded-full" />
-                                    <div>
-                                        <h3 className="text-lg font-medium">Khaled Shabaan</h3>
-                                        <p className="text-gray-400">4.5 out of 5 stars</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="p-4 border-t border-gray-700">
-                                <p className="text-gray-400">
-                                    I really enjoyed this course. The content was well-organized and the instructor was very engaging. I would definitely recommend it to anyone looking to learn web development.
-                                </p>
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -424,6 +444,43 @@ const CourseDetails = () => {
                         </button>
                         <button
                             onClick={() => setIsUploadPopupOpen(false)}
+                            className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {isFeedbackPopupOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+                    <div className="bg-gray-800 p-6 rounded-lg w-96">
+                        <h2 className="text-xl font-bold mb-4 text-white">Add Feedback</h2>
+                        <StarRatings
+                            rating={rating}
+                            starRatedColor="yellow"
+                            starHoverColor="yellow"
+                            changeRating={setRating}
+                            numberOfStars={5}
+                            name='rating'
+                            starDimension="30px"
+                            starSpacing="5px"
+                        />
+                        <textarea
+                            value={feedback}
+                            onChange={(e) => setFeedback(e.target.value)}
+                            rows="4"
+                            className="w-full p-2 mb-4 rounded bg-gray-700 text-white"
+                            placeholder="Write your feedback..."
+                        />
+                        <button
+                            onClick={handleFeedbackSubmit}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded mr-2"
+                        >
+                            Submit
+                        </button>
+                        <button
+                            onClick={() => setIsFeedbackPopupOpen(false)}
                             className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded"
                         >
                             Cancel

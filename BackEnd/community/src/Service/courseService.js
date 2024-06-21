@@ -14,6 +14,7 @@ class CourseService {
       ownerID: joi.string().required().label('ownerID'),
       level: joi.string().required().label('level'),
       language: joi.string().required().label('language'),
+      introVideo: joi.string().allow('').label('introVideo'),
       members: joi.array().items(
         joi.object({
           username: joi.string().required(),
@@ -181,6 +182,24 @@ class CourseService {
       console.error('Error in getJoinedCoursesForUser service:', error)
       throw new Error(`Failed to get joined courses: ${error.message}`)
     }
+  }
+
+  async addFeedback (courseId, userId, username, profilepic, rating, feedback) {
+    try {
+      const feedbackData = { userId, username, profilepic, rating, feedback }
+      console.log('Service - addFeedback - courseId:', courseId)
+      console.log('Service - addFeedback - feedbackData:', feedbackData)
+
+      const updatedCourse = await this.courseRepository.addFeedback(courseId, feedbackData)
+      return updatedCourse
+    } catch (error) {
+      console.error('Service - addFeedback - error:', error)
+      throw new Error(error.message)
+    }
+  }
+
+  async getFeedbacks (courseId) {
+    return await this.courseRepository.getFeedbacks(courseId)
   }
 }
 
